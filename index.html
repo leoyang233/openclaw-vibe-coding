@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>带着地图读三国</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f5f0e8;
+      --text: #2c2416;
+      --accent: #8b7355;
+      --wei: #4a90d9;
+      --shu: #6abf69;
+      --wu: #d94a4a;
+      --map-bg: #e8e0d0;
+      --place-name: #8b4513;
+      --border: #d4c5a9;
+    }
+
+    body {
+      font-family: 'Noto Serif SC', serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      height: 60px;
+      background: linear-gradient(to bottom, #3d3226, #2c2416);
+      color: #f5f0e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .name-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .name-toggle input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      font-size: 0.85rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .legend-dot.wei { background: var(--wei); }
+    .legend-dot.shu { background: var(--shu); }
+    .legend-dot.wu { background: var(--wu); }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    /* Reading Panel */
+    .reading-panel {
+      width: 40%;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .reading-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(139, 115, 85, 0.1);
+    }
+
+    .reading-header h2 {
+      font-size: 1.1rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .reading-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px;
+      line-height: 2;
+      font-size: 1.05rem;
+      text-align: justify;
+    }
+
+    .reading-content p {
+      margin-bottom: 1.5em;
+      text-indent: 2em;
+    }
+
+    /* Place Name Highlight */
+    .place-name {
+      color: var(--place-name);
+      border-bottom: 1px dashed var(--place-name);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      padding: 0 2px;
+    }
+
+    .place-name:hover {
+      background: rgba(255, 235, 150, 0.5);
+    }
+
+    .place-name.active {
+      background: rgba(255, 215, 0, 0.4);
+      border-bottom: 2px solid #b8860b;
+    }
+
+    /* Chapter Title */
+    .chapter-title {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 2em;
+      color: var(--text);
+      letter-spacing: 0.1em;
+    }
+
+    /* Map Panel */
+    .map-panel {
+      width: 60%;
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: var(--map-bg);
+    }
+
+    /* Info Card */
+    .info-card {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      width: 300px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      overflow: hidden;
+    }
+
+    .info-card.show {
+      display: block;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .info-card-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-card-header.wei { background: rgba(74, 144, 217, 0.2); }
+    .info-card-header.shu { background: rgba(106, 191, 105, 0.2); }
+    .info-card-header.wu { background: rgba(217, 74, 74, 0.2); }
+
+    .info-card-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .info-card-close {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+
+    .info-card-body {
+      padding: 16px;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .info-card-name-mapping {
+      background: rgba(139, 115, 85, 0.1);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-card-name-mapping .ancient {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .info-card-name-mapping .arrow {
+      color: var(--accent);
+    }
+
+    .info-card-name-mapping .modern {
+      font-size: 0.95rem;
+      color: var(--accent);
+    }
+
+    .info-card-meta {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+
+    /* Territory Legend on Map */
+    .map-legend {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(245, 240, 232, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px;
+      z-index: 1000;
+      font-size: 0.8rem;
+    }
+
+    .map-legend-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .map-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .map-legend-polygon {
+      width: 20px;
+      height: 12px;
+      opacity: 0.6;
+    }
+
+    /* Name Display Toggle Button */
+    .name-mode-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(245, 240, 232, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      z-index: 1000;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .name-mode-btn:hover {
+      background: rgba(245, 240, 232, 1);
+      border-color: var(--accent);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .reading-panel, .map-panel {
+        width: 100%;
+      }
+      .map-panel {
+        height: 50vh;
+      }
+      .reading-panel {
+        height: 50vh;
+      }
+      .legend {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📜 带着地图读三国</h1>
+    <div class="header-controls">
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot wei"></span>魏</div>
+        <div class="legend-item"><span class="legend-dot shu"></span>蜀</div>
+        <div class="legend-item"><span class="legend-dot wu"></span>吴</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="reading-panel">
+      <div class="reading-header">
+        <h2>第一回 宴桃园豪杰三结义 斩黄巾英雄首立功</h2>
+      </div>
+      <div class="reading-content" id="reading-content">
+        <p class="chapter-title">—— 东汉末年 ——</p>
+        <p>话说天下大势，分久必合，合久必分。周末七国分争，并入于秦。及秦灭之后，楚、汉分争，又并入于汉。汉朝自高祖斩白蛇而起义，一统天下，后来光武中兴，传至献帝，遂分为三国。</p>
+
+        <p>推其致乱之由，殆始于桓、灵二帝。桓帝信任宦官，<span class="place-name" data-place="洛阳">洛阳</span>宫中常有十常侍卖官鬻爵，聚敛财物。又造万金堂于<span class="place-name" data-place="西园">西园</span>，与中常侍等共分款项。灵帝即位，大将军窦武、太尉陈蕃辅政，其后皆为宦官所害。</p>
+
+        <p>灵帝建宁二年四月望日，帝出<span class="place-name" data-place="洛阳">洛阳</span>嘉德殿，忽然满面通红，似有惊恐之色。侍臣奏曰：「黄门令段珪劫帝出宫矣！」帝大惊，急召侍中陈耽、司徒王允入宫。</p>
+
+        <p>是年<span class="place-name" data-place="洛阳">洛阳</span>地震，有海啸惊涛，涌入学宫，淹没居民无数。越明年，<span class="place-name" data-place="洛阳">洛阳</span>又旱，民不聊生。</p>
+
+        <p>巨鹿有兄弟三人：一名<span class="place-name" data-place="张角">张角</span>，一名张宝，一名张梁。那张角是个不第秀才，因往<span class="place-name" data-place="冀州">冀州</span>采药，遇一老人，髯长过腹，碧眼童颜，手执藜杖，唤角至一洞中，授以天书三卷，名曰《太平要术》。角得此书，晓夜攻习，能呼风唤雨，号为「天公将军」。</p>
+
+        <p>张角引徒众弟子，往来<span class="place-name" data-place="冀州">冀州</span>各地，十余年间，众至数十万。张角与弟子李儒等商议曰：「难得容易，既已积粮草兵器于此，可先取<span class="place-name" data-place="洛阳">洛阳</span>，后取<span class="place-name" data-place="长安">长安</span>，则汉室可兴矣。」</p>
+
+        <p>时值汉帝大疫，百姓涂炭。<span class="place-name" data-place="幽州">幽州</span>太守刘焉，闻黄巾贼起，乃出榜招募义兵。榜文行到<span class="place-name" data-place="涿州">涿州</span>，引出一名英雄。</p>
+
+        <p>那人不甚好读书；性宽和，寡言语，喜怒不形于色；素有大志，专好结交天下豪杰；生得身长七尺五寸，两耳垂肩，双手过膝，目能自顾其耳，面如冠玉，唇若涂脂。此人乃<span class="place-name" data-place="中山靖王">中山靖王</span>刘胜之后，汉景帝阁下玄孙，姓刘名备，字玄德。</p>
+
+        <p>玄德见了榜文，叹了口气。忽身后有人厉声曰：「大丈夫不与国家出力，何故长叹？」玄德回视其人：身长八尺，豹头环眼，燕颔虎须，声若巨雷，势如奔马。此人姓张名飞，字翼德。</p>
+
+        <p>二人正说间，见一人推一辆车子到店门首卸下。玄德看其人：身长九尺，髯长二尺；面如重枣，唇若涂脂；丹凤眼，卧蚕眉，相貌堂堂，威风凛凛。此人姓关名羽，字长生，后改云长。</p>
+
+        <p>三人共饮数杯后，同到<span class="place-name" data-place="张飞">张飞</span>庄上，共议大事。飞曰：「吾颇有资财，当招募乡勇，与君共举大事。」</p>
+
+        <p>于是三人在<span class="place-name" data-place="涿州">张飞</span>庄后之桃园，祭告天地，结为异姓兄弟。不求同年同月同日生，只愿同年同月同日死。</p>
+
+        <p>三人遂往<span class="place-name" data-place="洛阳">洛阳</span>投军，会合天下英雄，共破黄巾贼。后人有诗赞曰：</p>
+
+        <p style="text-indent: 0; padding-left: 2em; color: var(--accent);">「宴桃园豪杰三结义，斩黄巾英雄首立功。</p>
+        <p style="text-indent: 0; padding-left: 2em; color: var(--accent);">破黄巾分兵下冀州，靖氛扫净长安通。」</p>
+      </div>
+    </div>
+
+    <div class="map-panel">
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="map-legend-title">势力范围</div>
+        <div class="map-legend-item">
+          <svg class="map-legend-polygon" viewBox="0 0 20 12">
+            <polygon points="0,0 20,0 20,12 0,12" fill="#4a90d9"/>
+          </svg>
+          <span>魏（北方）</span>
+        </div>
+        <div class="map-legend-item">
+          <svg class="map-legend-polygon" viewBox="0 0 20 12">
+            <polygon points="0,0 20,0 20,12 0,12" fill="#6abf69"/>
+          </svg>
+          <span>蜀（四川）</span>
+        </div>
+        <div class="map-legend-item">
+          <svg class="map-legend-polygon" viewBox="0 0 20 12">
+            <polygon points="0,0 20,0 20,12 0,12" fill="#d94a4a"/>
+          </svg>
+          <span>吴（江东）</span>
+        </div>
+      </div>
+      <div class="name-mode-btn" id="name-mode-btn" onclick="toggleNameMode()">
+        <span id="name-mode-icon">📜</span>
+        <span id="name-mode-text">古地名</span>
+      </div>
+      <div class="info-card" id="info-card">
+        <div class="info-card-header" id="info-card-header">
+          <span class="info-card-title" id="info-card-title"></span>
+          <button class="info-card-close" onclick="closeInfoCard()">×</button>
+        </div>
+        <div class="info-card-body">
+          <div class="info-card-name-mapping" id="info-card-name-mapping">
+            <span class="ancient" id="info-card-ancient"></span>
+            <span class="arrow">→</span>
+            <span class="modern" id="info-card-modern"></span>
+          </div>
+          <p id="info-card-desc"></p>
+          <div class="info-card-meta" id="info-card-meta"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 地名数据库（含古今映射） =====
+    // 现代地名经过纬度调整以匹配Leaflet底图
+    const places = {
+      '洛阳': {
+        lat: 34.62,
+        lng: 112.45,
+        faction: 'wei',
+        modern: '河南省洛阳市',
+        desc: '东汉首都，三国时期为魏国西都。张角原计划攻取的第一目标。',
+        meta: '重要程度：★★★★★'
+      },
+      '冀州': {
+        lat: 38.04,
+        lng: 115.46,
+        faction: 'wei',
+        modern: '河北省衡水市冀州区（古九州之一）',
+        desc: '黄巾起义发源地之一，张角传播天公将军信仰的核心地区。',
+        meta: '重要程度：★★★★☆'
+      },
+      '幽州': {
+        lat: 39.92,
+        lng: 116.38,
+        faction: 'wei',
+        modern: '北京市及周边地区',
+        desc: '东汉北方边境州郡，刘焉在此担任太守并发布招兵榜文。',
+        meta: '重要程度：★★★☆☆'
+      },
+      '涿州': {
+        lat: 39.48,
+        lng: 115.79,
+        faction: 'wei',
+        modern: '河北省保定市涿州市',
+        desc: '刘备、关羽、张飞相遇之地，桃园结义的发生地。',
+        meta: '重要程度：★★★★★'
+      },
+      '长安': {
+        lat: 34.27,
+        lng: 108.95,
+        faction: 'wei',
+        modern: '陕西省西安市',
+        desc: '西汉首都，张角第二步计划攻取的目标，战略意义重大。',
+        meta: '重要程度：★★★★☆'
+      },
+      '巨鹿': {
+        lat: 37.06,
+        lng: 114.78,
+        faction: 'wei',
+        modern: '河北省邢台市巨鹿县',
+        desc: '张角、张宝、张梁三兄弟的家乡，黄巾起义的发源地。',
+        meta: '重要程度：★★★★☆'
+      },
+      '西园': {
+        lat: 34.65,
+        lng: 112.35,
+        faction: 'wei',
+        modern: '河南省洛阳市西苑路一带（已不存）',
+        desc: '洛阳皇家园林，汉灵帝与宦官在此修建万金堂。',
+        meta: '重要程度：★★☆☆☆'
+      },
+      '许昌': {
+        lat: 34.03,
+        lng: 113.85,
+        faction: 'wei',
+        modern: '河南省许昌市',
+        desc: '曹操迎汉献帝迁都于此，为魏国都城核心。',
+        meta: '重要程度：★★★★★'
+      },
+      '邺城': {
+        lat: 36.58,
+        lng: 114.53,
+        faction: 'wei',
+        modern: '河北省邯郸市临漳县（邺城遗址）',
+        desc: '袁绍根据地，后为曹操魏王府，北方重镇。',
+        meta: '重要程度：★★★★☆'
+      },
+      '南阳': {
+        lat: 33.00,
+        lng: 112.53,
+        faction: 'wei',
+        modern: '河南省南阳市',
+        desc: '诸葛亮隐居之地，"臣本布衣，躬耕于南阳"。',
+        meta: '重要程度：★★★★★'
+      },
+      '荆州': {
+        lat: 30.54,
+        lng: 112.19,
+        faction: 'wu',
+        modern: '湖北省荆州市',
+        desc: '兵家必争之地，刘备借荆州故事发生地。',
+        meta: '重要程度：★★★★★'
+      },
+      '江陵': {
+        lat: 30.33,
+        lng: 112.19,
+        faction: 'wu',
+        modern: '湖北省荆州市江陵县',
+        desc: '荆州核心，周瑜、鲁肃活动区域。',
+        meta: '重要程度：★★★★☆'
+      },
+      '柴桑': {
+        lat: 29.43,
+        lng: 115.98,
+        faction: 'wu',
+        modern: '江西省九江市',
+        desc: '孙权早期根据地，周瑜故乡。',
+        meta: '重要程度：★★★☆☆'
+      },
+      '建业': {
+        lat: 32.06,
+        lng: 118.78,
+        faction: 'wu',
+        modern: '江苏省南京市',
+        desc: '孙权迁都于此，东吴政治中心。',
+        meta: '重要程度：★★★★★'
+      },
+      '吴郡': {
+        lat: 31.30,
+        lng: 120.62,
+        faction: 'wu',
+        modern: '江苏省苏州市',
+        desc: '孙坚、孙策起家之地，江东核心。',
+        meta: '重要程度：★★★★☆'
+      },
+      '成都': {
+        lat: 30.67,
+        lng: 104.07,
+        faction: 'shu',
+        modern: '四川省成都市',
+        desc: '刘备建立蜀汉的根据地和首都。',
+        meta: '重要程度：★★★★★'
+      },
+      '汉中': {
+        lat: 33.01,
+        lng: 106.94,
+        faction: 'shu',
+        modern: '陕西省汉中市',
+        desc: '刘备与曹操争夺的战略要地，蜀国北方门户。',
+        meta: '重要程度：★★★★★'
+      },
+      '绵竹': {
+        lat: 31.35,
+        lng: 104.20,
+        faction: 'shu',
+        modern: '四川省绵阳市',
+        desc: '刘备入蜀重要据点，庞统阵亡地。',
+        meta: '重要程度：★★★☆☆'
+      },
+      '赤壁': {
+        lat: 29.72,
+        lng: 113.27,
+        faction: 'wu',
+        modern: '湖北省咸宁市赤壁市',
+        desc: '孙刘联军大破曹操，三国最著名战役发生地。',
+        meta: '重要程度：★★★★★'
+      },
+      '乌林': {
+        lat: 29.92,
+        lng: 113.52,
+        faction: 'wu',
+        modern: '湖北省武汉市江夏区',
+        desc: '赤壁之战曹操屯兵地，孙刘联军火烧乌林。',
+        meta: '重要程度：★★★★☆'
+      },
+      '襄阳': {
+        lat: 32.01,
+        lng: 112.12,
+        faction: 'wu',
+        modern: '湖北省襄阳市',
+        desc: '荆州重镇，曹操、刘备、孙权反复争夺。',
+        meta: '重要程度：★★★★☆'
+      },
+      '新野': {
+        lat: 32.39,
+        lng: 112.22,
+        faction: 'shu',
+        modern: '河南省南阳市新野县',
+        desc: '刘备依附刘表，诸葛亮出山前隐居地。',
+        meta: '重要程度：★★★☆☆'
+      },
+      '徐州': {
+        lat: 34.21,
+        lng: 117.28,
+        faction: 'wei',
+        modern: '江苏省徐州市',
+        desc: '曹操、刘备、吕布争夺的军事要地。',
+        meta: '重要程度：★★★☆☆'
+      },
+      '小沛': {
+        lat: 34.73,
+        lng: 116.96,
+        faction: 'wei',
+        modern: '江苏省徐州市沛县',
+        desc: '刘备失徐州后屯兵之地。',
+        meta: '重要程度：★★☆☆☆'
+      },
+      '寿春': {
+        lat: 31.54,
+        lng: 116.99,
+        faction: 'wei',
+        modern: '安徽省淮南市寿县',
+        desc: '扬州刺史治所，曹操、孙权争夺之地。',
+        meta: '重要程度：★★★☆☆'
+      },
+      '汝南': {
+        lat: 33.01,
+        lng: 114.35,
+        faction: 'wei',
+        modern: '河南省驻马店市汝南县',
+        desc: '东汉汝南郡，曹操"发矫诏"讨董卓之地。',
+        meta: '重要程度：★★★☆☆'
+      }
+    };
+
+    // ===== 势力范围多边形 =====
+    const territories = {
+      wei: {
+        color: '#4a90d9',
+        name: '魏国（北方）',
+        bounds: [[35, 105], [42, 118], [40, 125], [36, 122], [33, 115], [32, 110]]
+      },
+      shu: {
+        color: '#6abf69',
+        name: '蜀国（四川盆地）',
+        bounds: [[28, 102], [34, 102], [34, 108], [28, 108]]
+      },
+      wu: {
+        color: '#d94a4a',
+        name: '吴国（江东）',
+        bounds: [[25, 115], [32, 115], [33, 122], [28, 125], [25, 120]]
+      }
+    };
+
+    // ===== 人物数据库 =====
+    const characters = {
+      '刘备': {
+        lat: 39.48,
+        lng: 115.79,
+        faction: 'shu',
+        modern: '河北省涿州市',
+        desc: '中山靖王之后，蜀汉开国皇帝。'
+      },
+      '关羽': {
+        lat: 39.50,
+        lng: 115.80,
+        faction: 'shu',
+        modern: '山西省运城市解良村（出生地）',
+        desc: '刘备二弟，五虎上将之首，被尊为"武圣"。'
+      },
+      '张飞': {
+        lat: 39.46,
+        lng: 115.81,
+        faction: 'shu',
+        modern: '河北省涿州市（传说居住地）',
+        desc: '刘备三弟，燕颔虎须，粗中有细。'
+      },
+      '张角': {
+        lat: 37.10,
+        lng: 114.80,
+        faction: 'wei',
+        modern: '河北省邢台市巨鹿县',
+        desc: '黄巾起义领袖，天公将军。'
+      },
+      '曹操': {
+        lat: 34.75,
+        lng: 113.65,
+        faction: 'wei',
+        modern: '河南省许昌市（主要活动地）',
+        desc: '魏武帝，挟天子以令诸侯，统一北方。'
+      },
+      '孙权': {
+        lat: 32.06,
+        lng: 118.78,
+        faction: 'wu',
+        modern: '江苏省苏州市（出生地），建业（都城）',
+        desc: '吴大帝，据江东而守，建立东吴政权。'
+      },
+      '孙坚': {
+        lat: 31.30,
+        lng: 120.62,
+        faction: 'wu',
+        modern: '江苏省苏州市',
+        desc: '孙权之父，讨董联军先锋，战死于襄阳。'
+      },
+      '袁绍': {
+        lat: 36.58,
+        lng: 114.53,
+        faction: 'wei',
+        modern: '河南省禹州市（出身地），邺城（根据地）',
+        desc: '东汉末年大军阀，官渡之战败于曹操。'
+      },
+      '董卓': {
+        lat: 34.27,
+        lng: 108.95,
+        faction: 'wei',
+        modern: '陕西省西安市（废少帝迁都于此）',
+        desc: '凉州军阀，率军入京乱政，被吕布所杀。'
+      },
+      '吕布': {
+        lat: 34.75,
+        lng: 113.65,
+        faction: 'wei',
+        modern: '内蒙古包头市（出身地，五原郡）',
+        desc: '勇冠三军，有"飞将"之称，命丧白门楼。'
+      },
+      '诸葛亮': {
+        lat: 30.54,
+        lng: 112.19,
+        faction: 'shu',
+        modern: '山东省临沂市沂南县（出生地）',
+        desc: '蜀汉丞相，智慧的化身，"卧龙先生"。'
+      },
+      '周瑜': {
+        lat: 29.43,
+        lng: 115.98,
+        faction: 'wu',
+        modern: '江西省九江市（出身地）',
+        desc: '东吴大都督，火烧赤壁的策划者。'
+      }
+    };
+
+    // ===== 状态 =====
+    let nameMode = 'ancient'; // 'ancient' | 'modern'
+
+    // ===== 初始化地图 =====
+    const map = L.map('map', {
+      center: [33, 112],
+      zoom: 5,
+      minZoom: 4,
+      maxZoom: 8
+    });
+
+    // 底图 - 使用CartoDB Positron（较淡雅）
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap, © CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // 绘制势力范围
+    Object.entries(territories).forEach(([key, data]) => {
+      const polygon = L.polygon(data.bounds, {
+        color: data.color,
+        fillColor: data.color,
+        fillOpacity: 0.2,
+        weight: 2,
+        dashArray: '5, 5'
+      }).addTo(map);
+
+      polygon.bindTooltip(data.name, {
+        permanent: false,
+        direction: 'center',
+        className: 'territory-label'
+      });
+    });
+
+    // ===== 标记地点 =====
+    const markers = {};
+    const factionColors = {
+      wei: '#4a90d9',
+      shu: '#6abf69',
+      wu: '#d94a4a'
+    };
+
+    function createPlaceIcon(color, isActive = false) {
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="
+          width: ${isActive ? 16 : 12}px;
+          height: ${isActive ? 16 : 12}px;
+          background: ${color};
+          border: 2px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          transition: all 0.2s ease;
+        "></div>`,
+        iconSize: [isActive ? 16 : 12, isActive ? 16 : 12],
+        iconAnchor: [isActive ? 8 : 6, isActive ? 8 : 6]
+      });
+    }
+
+    Object.entries(places).forEach(([name, data]) => {
+      const icon = createPlaceIcon(factionColors[data.faction]);
+      const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
+
+      const tooltipContent = nameMode === 'ancient'
+        ? `${name}<br><span style="font-size:0.85em;color:#888">今${data.modern}</span>`
+        : `${data.modern}<br><span style="font-size:0.85em;color:#888">古${name}</span>`;
+
+      marker.bindTooltip(tooltipContent, { direction: 'top' });
+
+      marker.on('click', () => {
+        showInfoCard(name, data, 'place');
+        highlightPlaceName(name);
+      });
+
+      markers[name] = marker;
+    });
+
+    // ===== 标记人物 =====
+    const charMarkers = {};
+
+    Object.entries(characters).forEach(([name, data]) => {
+      const icon = L.divIcon({
+        className: 'char-marker',
+        html: `<div style="
+          font-size: 20px;
+          filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+          cursor: pointer;
+        ">👤</div>`,
+        iconSize: [24, 28],
+        iconAnchor: [12, 28]
+      });
+
+      const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
+
+      const tooltipContent = nameMode === 'ancient'
+        ? `${name}<br><span style="font-size:0.85em;color:#888">${data.modern}</span>`
+        : `${data.modern}<br><span style="font-size:0.85em;color:#888">${name}</span>`;
+
+      marker.bindTooltip(tooltipContent, { direction: 'top' });
+
+      marker.on('click', () => {
+        showInfoCard(name, data, 'char');
+      });
+
+      charMarkers[name] = marker;
+
+    // ===== 信息卡片 =====
+    function showInfoCard(name, data, type) {
+      const card = document.getElementById('info-card');
+      const header = document.getElementById('info-card-header');
+      const title = document.getElementById('info-card-title');
+      const ancientEl = document.getElementById('info-card-ancient');
+      const modernEl = document.getElementById('info-card-modern');
+      const desc = document.getElementById('info-card-desc');
+      const meta = document.getElementById('info-card-meta');
+
+      header.className = 'info-card-header ' + (data.faction || 'wei');
+      title.textContent = type === 'char' ? name : name;
+      ancientEl.textContent = name;
+      modernEl.textContent = data.modern || '（同今地）';
+      desc.textContent = data.desc;
+      meta.textContent = data.meta || `势力：${data.faction === 'shu' ? '蜀' : data.faction === 'wei' ? '魏' : '吴'}`;
+
+      card.classList.add('show');
+
+      // 地图飞窗
+      if (data.lat && data.lng) {
+        map.flyTo([data.lat, data.lng], 7, { duration: 1 });
+      }
+    }
+
+    function closeInfoCard() {
+      document.getElementById('info-card').classList.remove('show');
+    }
+
+    // ===== 地名高亮联动 =====
+    function highlightPlaceName(name) {
+      // 移除之前的 active
+      document.querySelectorAll('.place-name.active').forEach(el => {
+        el.classList.remove('active');
+      });
+
+      // 找到对应的地名并高亮
+      const placeEls = document.querySelectorAll(`.place-name[data-place="${name}"]`);
+      placeEls.forEach(el => el.classList.add('active'));
+
+      // 滚动到视野
+      if (placeEls.length > 0) {
+        placeEls[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // ===== 地名点击事件 =====
+    document.querySelectorAll('.place-name').forEach(el => {
+      el.addEventListener('click', () => {
+        const name = el.dataset.place;
+        if (places[name]) {
+          showInfoCard(name, places[name], 'place');
+          highlightPlaceName(name);
+        }
+      });
+    });
+
+    // ===== 地名/现代名切换 =====
+    function toggleNameMode() {
+      nameMode = nameMode === 'ancient' ? 'modern' : 'ancient';
+      document.getElementById('name-mode-icon').textContent = nameMode === 'ancient' ? '📜' : '🏙️';
+      document.getElementById('name-mode-text').textContent = nameMode === 'ancient' ? '古地名' : '今地名';
+
+      // 更新所有 tooltip
+      Object.entries(places).forEach(([name, data]) => {
+        const tooltipContent = nameMode === 'ancient'
+          ? `${name}<br><span style="font-size:0.85em;color:#888">今${data.modern}</span>`
+          : `${data.modern}<br><span style="font-size:0.85em;color:#888">古${name}</span>`;
+        if (markers[name]) {
+          markers[name].setTooltipContent(tooltipContent);
+        }
+      });
+
+      Object.entries(characters).forEach(([name, data]) => {
+        const tooltipContent = nameMode === 'ancient'
+          ? `${name}<br><span style="font-size:0.85em;color:#888">${data.modern}</span>`
+          : `${data.modern}<br><span style="font-size:0.85em;color:#888">${name}</span>`;
+        if (charMarkers[name]) {
+          charMarkers[name].setTooltipContent(tooltipContent);
+        }
+      });
+    }
+
+    // ===== 阅读区地名悬停地图联动 =====
+    document.querySelectorAll('.place-name').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        const name = el.dataset.place;
+        if (markers[name]) {
+          map.flyTo([markers[name].getLatLng().lat, markers[name].getLatLng().lng], 6, { duration: 0.5 });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
