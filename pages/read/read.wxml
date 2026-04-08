@@ -1,0 +1,70 @@
+<view class="container">
+  <view class="chapter-header">
+    <view class="chapter-num">第{{chapter.id}}回</view>
+    <view class="chapter-title">{{chapter.title}}</view>
+  </view>
+
+  <view class="location-bar" bindtap="showOnMap">
+    <van-icon name="location" size="18px" color="#8B0000" />
+    <text class="location-name">{{chapter.location}}</text>
+    <text class="location-desc">{{chapter.locationDetail.description}}</text>
+    <van-icon name="arrow" size="14px" color="#999" />
+  </view>
+
+  <view class="map-preview" bindtap="toggleMap">
+    <map
+      id="storyMap"
+      class="map"
+      latitude="{{mapLatitude}}"
+      longitude="{{mapLongitude}}"
+      scale="6"
+      show-location
+      markers="{{markers}}"
+      bindmarkertap="onMarkerTap"
+    ></map>
+    <view class="map-overlay" wx:if="{{!showMap}}">
+      <text>点击展开地图</text>
+    </view>
+    <view class="map-toggle" wx:if="{{showMap}}">
+      <van-icon name="arrow-up" size="16px" />
+      <text>收起地图</text>
+    </view>
+  </view>
+
+  <view class="content-section">
+    <view class="section-title">正 文</view>
+    <view class="content-text">{{chapter.content}}</view>
+  </view>
+
+  <view class="characters-section">
+    <view class="section-title">相关人物</view>
+    <scroll-view scroll-x class="characters-scroll">
+      <view
+        class="character-card"
+        wx:for="{{chapter.relatedCharacters}}"
+        wx:key="name"
+        bindtap="viewCharacter"
+        data-name="{{item.name}}"
+      >
+        <view class="char-avatar {{item.faction}}">{{item.name.[0]}}</view>
+        <view class="char-name">{{item.name}}</view>
+        <view class="char-faction tag-{{item.faction}}">{{item.faction}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="nav-bar">
+    <button
+      class="nav-btn {{chapter.id <= 1 ? 'disabled' : ''}}"
+      bindtap="prevChapter"
+      disabled="{{chapter.id <= 1}}"
+    >
+      <van-icon name="arrow-left" size="18px" />
+      上一回
+    </button>
+    <button class="nav-btn {{chapter.id >= totalChapters ? 'disabled' : ''}}" bindtap="nextChapter" disabled="{{chapter.id >= totalChapters}}">
+      下一回
+      <van-icon name="arrow" size="18px" />
+    </button>
+  </view>
+</view>

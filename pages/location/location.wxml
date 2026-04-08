@@ -1,0 +1,66 @@
+<view class="container">
+  <view class="search-bar">
+    <van-icon name="search" size="18px" color="#999" />
+    <input
+      class="search-input"
+      placeholder="搜索地点"
+      bindinput="onSearch"
+      value="{{searchKeyword}}"
+    />
+  </view>
+
+  <view class="type-filter">
+    <view
+      class="filter-pill {{currentType === 'all' ? 'active' : ''}}"
+      bindtap="setType"
+      data-type="all"
+    >全部</view>
+    <view
+      class="filter-pill {{currentType === '都城' ? 'active' : ''}}"
+      bindtap="setType"
+      data-type="都城"
+    >都城</view>
+    <view
+      class="filter-pill {{currentType === '城池' ? 'active' : ''}}"
+      bindtap="setType"
+      data-type="城池"
+    >城池</view>
+    <view
+      class="filter-pill {{currentType === '关隘' ? 'active' : ''}}"
+      bindtap="setType"
+      data-type="关隘"
+    >关隘</view>
+    <view
+      class="filter-pill {{currentType === '战场' ? 'active' : ''}}"
+      bindtap="setType"
+      data-type="战场</view>
+  </view>
+
+  <view class="locations-list">
+    <view
+      class="location-card"
+      wx:for="{{filteredLocations}}"
+      wx:key="id"
+      bindtap="viewLocation"
+      data-id="{{item.id}}"
+    >
+      <view class="location-icon">
+        <van-icon name="location-o" size="24px" color="#8B0000" />
+      </view>
+      <view class="location-info">
+        <view class="location-name-row">
+          <text class="location-name">{{item.name}}</text>
+          <text class="location-ancient">({{item.ancientName}})</text>
+        </view>
+        <view class="location-type tag-{{item.type}}">{{item.type}}</view>
+        <text class="location-desc">{{item.description}}</text>
+      </view>
+      <van-icon name="arrow" size="16px" color="#999" />
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{filteredLocations.length === 0}}">
+    <van-icon name="location-o" size="48px" color="#ccc" />
+    <text>未找到相关地点</text>
+  </view>
+</view>

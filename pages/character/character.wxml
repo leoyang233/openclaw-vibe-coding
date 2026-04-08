@@ -1,0 +1,67 @@
+<view class="container">
+  <view class="character-header">
+    <view class="char-avatar-large {{character.faction}}">
+      <text>{{character.name.[0]}}</text>
+    </view>
+    <view class="char-basic">
+      <view class="char-name-row">
+        <text class="char-name">{{character.name}}</text>
+        <text class="char-courtesy">{{character.courtesy}}</text>
+      </view>
+      <view class="char-faction-row">
+        <view class="faction-tag {{character.faction}}">{{character.faction}}</view>
+      </view>
+      <view class="char-birthplace">
+        <van-icon name="location-o" size="14px" />
+        <text>{{character.birthplace}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">人物简介</view>
+    <view class="card">
+      <view class="card-text">{{character.description}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">生平事迹</view>
+    <view class="card">
+      <view class="card-text">{{character.story}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">相关章节</view>
+    <view class="chapters-list">
+      <view
+        class="chapter-item"
+        wx:for="{{relatedChapters}}"
+        wx:key="id"
+        bindtap="readChapter"
+        data-id="{{item.id}}"
+      >
+        <view class="chapter-info">
+          <text class="chapter-num">第{{item.id}}回</text>
+          <text class="chapter-title">{{item.title}}</text>
+        </view>
+        <van-icon name="arrow" size="16px" color="#999" />
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">在地图上的位置</view>
+    <view class="mini-map">
+      <map
+        id="charMap"
+        class="map"
+        latitude="{{character.lat}}"
+        longitude="{{character.lng}}"
+        scale="8"
+        markers="{{markers}}"
+      ></map>
+    </view>
+  </view>
+</view>

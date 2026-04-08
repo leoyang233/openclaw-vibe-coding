@@ -1,0 +1,160 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #F5F5DC;
+}
+
+.map-header {
+  background-color: #fff;
+  padding: 20rpx 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 40rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.search-input {
+  flex: 1;
+  margin-left: 16rpx;
+  font-size: 28rpx;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 16rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.filter-tab {
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  color: #666;
+  background-color: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.filter-tab.active {
+  background-color: #8B0000;
+  color: #fff;
+}
+
+.main-map {
+  flex: 1;
+  width: 100%;
+}
+
+.legend {
+  position: absolute;
+  bottom: 40rpx;
+  left: 30rpx;
+  background-color: #fff;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  display: flex;
+  gap: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 22rpx;
+  color: #666;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.legend-dot.shu { background-color: #52C41A; }
+.legend-dot.wei { background-color: #1890FF; }
+.legend-dot.wu { background-color: #722ED1; }
+.legend-dot.location { background-color: #8B0000; }
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.sheet-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.sheet-close {
+  padding: 10rpx;
+}
+
+.sheet-content {
+  padding: 30rpx;
+}
+
+.sheet-info {
+  display: flex;
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+}
+
+.info-label {
+  color: #999;
+}
+
+.sheet-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.8;
+  margin: 20rpx 0;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.action-btn {
+  flex: 1;
+  font-size: 26rpx;
+  padding: 20rpx 0;
+  border-radius: 40rpx;
+  border: none;
+}
+
+.action-btn.primary {
+  background-color: #8B0000;
+  color: #fff;
+}
+
+.action-btn.secondary {
+  background-color: #fff;
+  color: #8B0000;
+  border: 2rpx solid #8B0000;
+}

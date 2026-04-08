@@ -1,0 +1,53 @@
+<view class="container">
+  <view class="header">
+    <view class="header-title">带着地图读三国</view>
+    <view class="header-subtitle">一边读三国，一边看地图</view>
+  </view>
+
+  <view class="quick-actions">
+    <view class="quick-btn" bindtap="goToMap">
+      <van-icon name="location-o" size="24px" />
+      <text>地图探索</text>
+    </view>
+    <view class="quick-btn" bindtap="goToCharacters">
+      <van-icon name="friends-o" size="24px" />
+      <text>人物志</text>
+    </view>
+    <view class="quick-btn" bindtap="goToLocations">
+      <van-icon name="map-marked" size="24px" />
+      <text>地点录</text>
+    </view>
+  </view>
+
+  <view class="section-title">章节目录</view>
+
+  <view class="chapter-list">
+    <view
+      class="chapter-card"
+      wx:for="{{chapters}}"
+      wx:key="id"
+      bindtap="readChapter"
+      data-id="{{item.id}}"
+    >
+      <view class="chapter-header">
+        <text class="chapter-num">第{{item.id}}回</text>
+        <view class="chapter-tags">
+          <van-tag type="primary" size="small">{{item.location}}</van-tag>
+        </view>
+      </view>
+      <view class="chapter-title">{{item.title}}</view>
+      <view class="chapter-summary">{{item.summary}}</view>
+      <view class="chapter-footer">
+        <view class="character-avatars">
+          <text
+            wx:for="{{item.characters}}"
+            wx:for-item="char"
+            wx:key="char"
+            class="char-name"
+          >{{char}}</text>
+        </view>
+        <van-icon name="arrow" size="16px" color="#999" />
+      </view>
+    </view>
+  </view>
+</view>

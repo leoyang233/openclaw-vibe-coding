@@ -1,0 +1,99 @@
+<view class="container">
+  <view class="map-header">
+    <view class="search-bar">
+      <van-icon name="search" size="18px" color="#999" />
+      <input
+        class="search-input"
+        placeholder="搜索人物或地点"
+        bindinput="onSearch"
+        value="{{searchKeyword}}"
+      />
+    </view>
+    <view class="filter-tabs">
+      <view
+        class="filter-tab {{currentFilter === 'all' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="all"
+      >全部</view>
+      <view
+        class="filter-tab {{currentFilter === '城池' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="城池"
+      >城池</view>
+      <view
+        class="filter-tab {{currentFilter === '战场' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="战场</view>
+      <view
+        class="filter-tab {{currentFilter === '蜀' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="蜀"
+      >蜀</view>
+      <view
+        class="filter-tab {{currentFilter === '魏' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="魏"
+      >魏</view>
+      <view
+        class="filter-tab {{currentFilter === '吴' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="吴"
+      >吴</view>
+    </view>
+  </view>
+
+  <map
+    id="mainMap"
+    class="main-map"
+    latitude="{{mapLatitude}}"
+    longitude="{{mapLongitude}}"
+    scale="5"
+    show-location
+    markers="{{markers}}"
+    bindmarkertap="onMarkerTap"
+    bindregionchange="onRegionChange"
+  ></map>
+
+  <view class="legend">
+    <view class="legend-item">
+      <view class="legend-dot shu"></view>
+      <text>蜀</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot wei"></view>
+      <text>魏</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot wu"></view>
+      <text>吴</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot location"></view>
+      <text>地点</text>
+    </view>
+  </view>
+
+  <view class="bottom-sheet" wx:if="{{selectedItem}}">
+    <view class="sheet-header">
+      <view class="sheet-title">{{selectedItem.name}}</view>
+      <view class="sheet-close" bindtap="closeSheet">
+        <van-icon name="cross" size="18px" />
+      </view>
+    </view>
+    <view class="sheet-content">
+      <view class="sheet-info" wx:if="{{selectedItem.ancientName}}">
+        <text class="info-label">古名：</text>
+        <text>{{selectedItem.ancientName}}</text>
+      </view>
+      <view class="sheet-info" wx:if="{{selectedItem.type}}">
+        <text class="info-label">类型：</text>
+        <text>{{selectedItem.type}}</text>
+      </view>
+      <view class="sheet-desc">{{selectedItem.description}}</view>
+      <view class="sheet-actions">
+        <button class="action-btn primary" bindtap="viewDetail">查看详情</button>
+        <button class="action-btn secondary" bindtap="goToChapter">阅读相关章节</button>
+      </view>
+    </view>
+  </view>
+</view>

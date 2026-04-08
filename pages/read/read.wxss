@@ -1,0 +1,200 @@
+.container {
+  padding: 0;
+  background-color: #F5F5DC;
+}
+
+.chapter-header {
+  padding: 30rpx;
+  background: linear-gradient(135deg, #8B0000 0%, #5C0000 100%);
+  color: #fff;
+}
+
+.chapter-num {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8rpx;
+}
+
+.chapter-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #D4AF37;
+  line-height: 1.4;
+}
+
+.location-bar {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.location-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #8B0000;
+  margin-left: 12rpx;
+}
+
+.location-desc {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 16rpx;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-preview {
+  position: relative;
+  height: 300rpx;
+  background-color: #e0e0e0;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+}
+
+.map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-overlay text {
+  color: #fff;
+  font-size: 28rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 16rpx 32rpx;
+  border-radius: 40rpx;
+}
+
+.map-toggle {
+  position: absolute;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: #666;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.content-section {
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #8B0000;
+  margin-bottom: 20rpx;
+  padding-left: 16rpx;
+  border-left: 6rpx solid #D4AF37;
+}
+
+.content-text {
+  font-size: 30rpx;
+  line-height: 2;
+  color: #333;
+  text-align: justify;
+  font-family: "Songti SC", "SimSun", serif;
+}
+
+.characters-section {
+  padding: 0 30rpx 30rpx;
+}
+
+.characters-scroll {
+  white-space: nowrap;
+  margin-top: 16rpx;
+}
+
+.character-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  margin-right: 20rpx;
+  width: 160rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.char-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 12rpx;
+}
+
+.char-avatar.刘备 { background-color: #52C41A; }
+.char-avatar.曹操 { background-color: #1890FF; }
+.char-avatar.孙吴 { background-color: #722ED1; }
+.char-avatar.董卓 { background-color: #F5222D; }
+.char-avatar.袁绍 { background-color: #FA8C16; }
+.char-avatar.吕布 { background-color: #EB5757; }
+
+.char-name {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.char-faction {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.tag-刘备 { background-color: #E6FFE6; color: #52C41A; }
+.tag-曹操 { background-color: #E6F3FF; color: #1890FF; }
+.tag-孙吴 { background-color: #F4F0FF; color: #722ED1; }
+.tag-董卓 { background-color: #FFF0F0; color: #F5222D; }
+.tag-袁绍 { background-color: #FFF7E6; color: #FA8C16; }
+.tag-吕布 { background-color: #FFF0F0; color: #EB5757; }
+
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 30rpx;
+  background-color: #fff;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 26rpx;
+  color: #8B0000;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+
+.nav-btn.disabled {
+  color: #ccc;
+}
