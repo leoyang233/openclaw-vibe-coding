@@ -136,28 +136,16 @@ function loadChapter(id) {
 function renderReadMap(chapter) {
   const container = document.getElementById('map-container-read');
   const location = chapter.locationDetail;
-  const center = `${location.lng},${location.lat}`;
 
-  // 生成标记点
-  const markers = [];
-  markers.push({
-    pos: `${location.lng},${location.lat}`,
-    title: location.name,
-    color: 'red'
-  });
-
-  chapter.relatedCharacters.forEach((char, i) => {
-    markers.push({
-      pos: `${char.lng + (Math.random() - 0.5) * 2},${char.lat + (Math.random() - 0.5) * 2}`,
-      title: char.name,
-      color: getFactionColor(char.faction)
-    });
-  });
-
-  const markerStr = markers.map(m => `markers=markers:*,${m.pos},${m.title},${m.color}`).join('&');
-
+  // 显示位置信息和跳转链接
   container.innerHTML = `
-    <iframe src="https://maps.google.com/maps?q=${encodeURIComponent(location.name)}&z=6&output=embed&center=${center}" allowfullscreen></iframe>
+    <div class="map-location-info">
+      <div class="map-location-name">${location.name}</div>
+      <div class="map-location-coords">${location.lat.toFixed(2)}°N, ${location.lng.toFixed(2)}°E</div>
+    </div>
+    <a class="map-btn" href="https://maps.apple.com/?ll=${location.lat},${location.lng}&q=${encodeURIComponent(location.name)}" target="_blank">
+      在地图中查看
+    </a>
   `;
 }
 
@@ -224,32 +212,41 @@ function updateMapMarkers() {
     characters = characters.filter(c => c.name.includes(search));
   }
 
-  // 构建 Google Maps URL
-  let markers = [];
-  let center = '34.0,112.0';
+  // 显示位置列表
+  const allItems = [
+    ...locations.map(l => ({ ...l, type: 'location' })),
+    ...characters.map(c => ({ ...c, type: 'character' }))
+  ];
 
-  if (locations.length > 0) {
-    center = `${locations[0].lng},${locations[0].lat}`;
-    locations.forEach(loc => {
-      markers.push(`markers=color:red%7C${loc.lat},${loc.lng}`);
-    });
+  if (allItems.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">未找到相关地点或人物</div>';
+    return;
   }
-
-  if (characters.length > 0) {
-    const char = characters[0];
-    center = `${char.lng},${char.lat}`;
-    characters.forEach(c => {
-      const color = getFactionColor(c.faction);
-      markers.push(`markers=color:${color}%7C${c.lat},${c.lng}`);
-    });
-  }
-
-  const markerStr = markers.join('&');
-  const zoom = (locations.length + characters.length) > 5 ? 5 : 7;
 
   container.innerHTML = `
-    <iframe src="https://www.google.com/maps?q=${center}&z=${zoom}&output=embed&markers=${encodeURIComponent(markerStr)}" allowfullscreen></iframe>
+    <div style="padding:15px;overflow-y:auto;height:100%;">
+      <h3 style="margin-bottom:15px;font-size:14px;color:#8B0000;">共 ${allItems.length} 个标记点</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${allItems.map(item => `
+          <div style="background:#fff;padding:12px;border-radius:8px;cursor:pointer;" onclick="openInMap('${item.name}', ${item.lat}, ${item.lng})">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:16px;">${item.type === 'location' ? '📍' : '👤'}</span>
+              <div>
+                <div style="font-weight:bold;color:#333;">${item.name}</div>
+                <div style="font-size:11px;color:#999;">${item.lat.toFixed(2)}°N, ${item.lng.toFixed(2)}°E</div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
   `;
+}
+
+function openInMap(name, lat, lng) {
+  // 尝试使用 Apple Maps 或 Google Maps
+  const url = `https://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(name)}`;
+  window.open(url, '_blank');
 }
 
 function onMapSearch() {
@@ -338,7 +335,14 @@ function loadCharacter(name) {
   // 地图
   const mapContainer = document.getElementById('char-map');
   mapContainer.innerHTML = `
-    <iframe src="https://www.google.com/maps?q=${char.lat},${char.lng}&z=8&output=embed" allowfullscreen></iframe>
+    <div style="padding:40px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:15px;">📍</div>
+      <div style="font-size:16px;font-weight:bold;color:#333;margin-bottom:5px;">${char.birthplace}</div>
+      <div style="font-size:13px;color:#999;margin-bottom:20px;">${char.lat.toFixed(2)}°N, ${char.lng.toFixed(2)}°E</div>
+      <a class="map-btn" href="https://maps.apple.com/?ll=${char.lat},${char.lng}&q=${encodeURIComponent(char.birthplace)}" target="_blank">
+        在地图中查看
+      </a>
+    </div>
   `;
 }
 
